@@ -3,15 +3,21 @@ import sys
 import traceback
 from threading import Thread
 
+# TODO: the goal for tonight is to understand the project and get some
+# of the helper functions done ... have some time tonight to knock out a good portion (like, 2.5 good hours ...)
+
+# need to have this done by friday and tbh i don't really understand how much programming that entails ... 
+# at least want to be able to ask good questions during lab tomorrow
 
 # Helper Functions
 
 # The purpose of this function is to set up a socket connection.
 def create_socket(host, port):
     # 1. Create a socket.
-    ## soc = ...
+    soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # 2. Try connecting the socket to the host and port.
     try:
+        soc.bind((host, port))
         ## ...
     except:
         print("Connection Error to", port)
@@ -28,6 +34,7 @@ def read_csv(path):
     table = table_file.readlines()
     # 3. Create an empty list to store each processed row.
     table_list = []
+
     # 4. For each line in the file:
     ## for ...:
         # 5. split it by the delimiter,
@@ -36,6 +43,13 @@ def read_csv(path):
         ## ...
         # 7. append the resulting list to table_list.
         ## table_list.append(...)
+
+    for line in table: 
+        elements = line.split(",")
+        for element in elements:
+            element.strip()
+        table_list.append(elements)
+
     # 8. Close the file and return table_list.
     table_file.close()
     return table_list
