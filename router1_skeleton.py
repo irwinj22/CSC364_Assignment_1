@@ -34,7 +34,6 @@ PORT_SIX = 8006
 # ---
 
 # The purpose of this function is to set up a socket connection.
-# NOTE: create a CLINET socket, bind the to the given SERVER information
 def create_socket(host, port):
     # 1. Create a socket.
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -60,11 +59,8 @@ def read_csv(path):
     # 4. For each line in the file:
     for row in table: 
         # 5. split it by the delimiter,
-        # TODO: assuming that it's a comma for now
-        elements = row.split(",")
         # 6. remove any leading or trailing spaces in each element, and
-        for element in elements:
-            element.strip()
+        elements = [element.strip() for element in row.split(",")]
         # 7. append the resulting list to table_list.
         table_list.append(elements)
 
@@ -183,10 +179,10 @@ for f in files:
 
 # 1. Connect to the appropriate sending ports (based on the network topology diagram).
 # create connection to router 2
-soc_two = create_socket('127.0.0.1', 8002)
+soc_two = create_socket('127.0.0.1', PORT_TWO)
 
 # create connection to router 4
-soc_four = create_socket('127.0.0.1', 8004)
+soc_four = create_socket('127.0.0.1', PORT_FOUR)
 
 # 2. Read in and store the forwarding table.
 forwarding_table = read_csv("router_1_table.csv")
@@ -204,15 +200,15 @@ for row in packets_table:
     sourceIP = row[SOURCE_IP]
     destinationIP = row[DESTINATION_IP]
     payload = row[PAYLOAD]
-    ttl = row[TTL]
+    ttl = int(row[TTL])
 
     # 8. Decrement the TTL by 1 and construct a new packet with the new TTL.
     new_ttl = ttl - 1
-    new_packet = f"{sourceIP}, {destinationIP}, {payload}, {new_ttl}"
+    new_packet = f"{sourceIP},{destinationIP},{payload},{new_ttl}"
 
     # 9. Convert the destination IP into an integer for comparison purposes.
     destinationIP_bin = ip_to_bin(destinationIP)
-    destinationIP_int = int(destinationIP_bin)
+    destinationIP_int = int(destinationIP_bin, 2)
 
     # 10. If no port is found, then set the sending port to the default port.
     sending_port = default_gateway_port
@@ -221,6 +217,7 @@ for row in packets_table:
     for row in forwarding_table_with_range: 
         if destinationIP_int >= row[2] and destinationIP_int <= row[3]:
             sending_port = row[4]
+            break
 
     # if port is 127.0.0.1, then this is the last router .. (just write the payload the file)
     # discard if TTL is 0 AND this is not that last hop
@@ -242,14 +239,14 @@ for row in packets_table:
     # (c) append the new packet to discarded_by_router_1.txt and do not forward the new packet
         # don't send anything .. ?
 
-    if new_ttl > 0 and sending_port == PORT_TWO:
+    if new_ttl > 0 and sending_port == "8002":
         print("sending packet", new_packet, "to Router 2")
-        write_to_file("sent_by_router_1.txt", payload, "Router 2")
-        soc_two.send(new_packet)
-    elif new_ttl > 0 and sending_port == PORT_FOUR:
+        write_to_file("sent_by_router_1.txt", payload, "2")
+        soc_two.send(new_packet.encode("utf-8"))
+    elif new_ttl > 0 and sending_port == "8004":
         print("sending packet", new_packet, "to Router 4")
-        write_to_file("sent_by_router_1.txt", payload, "Router 4")
-        soc_four.send(new_packet)
+        write_to_file("sent_by_router_1.txt", payload, "4")
+        soc_four.send(new_packet.encode("utf-8"))
     elif new_ttl >= 0 and sending_port == "127.0.0.1":
         write_to_file("out_router_1.txt", payload, None)
         print("OUT:", payload)
