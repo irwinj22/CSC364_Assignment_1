@@ -3,13 +3,9 @@ import sys
 import traceback
 from threading import Thread
 
-# TODO: the goal for tonight is to understand the project and get some
-# of the helper functions done ... have some time tonight to knock out a good portion (like, 2.5 good hours ...)
-
-# need to have this done by friday and tbh i don't really understand how much programming that entails ... 
-# at least want to be able to ask good questions during lab tomorrow
-
 # Helper Functions
+
+# TODO: should I just copy this whole skeleton for the other routers? 
 
 # The purpose of this function is to set up a socket connection.
 def create_socket(host, port):

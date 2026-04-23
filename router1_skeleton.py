@@ -4,7 +4,9 @@ import time
 import os
 import glob
 
+# ---
 # Constant Definitions
+# ---
 
 OCTET_LENGTH = 8
 
@@ -20,15 +22,26 @@ DESTINATION_IP = 1
 PAYLOAD = 2
 TTL = 3
 
+# Router Ports
+PORT_TWO = 8002
+PORT_THREE = 8003
+PORT_FOUR = 8004
+PORT_FIVE = 8005
+PORT_SIX = 8006
+
+# ---
 # Helper Functions
+# ---
 
 # The purpose of this function is to set up a socket connection.
+# NOTE: create a CLINET socket, bind the to the given SERVER information
 def create_socket(host, port):
     # 1. Create a socket.
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # 2. Try connecting the socket to the host and port.
     try:
-        soc.bind((host, port))
+        # this is the server socket that it should connect to
+        soc.connect((host, port))
     except:
         print("Connection Error to", port)
         sys.exit()
@@ -80,7 +93,7 @@ def generate_forwarding_table_with_range(table):
     for row in table:
         # 3. and process each network destination other than 0.0.0.0
         # (0.0.0.0 is only useful for finding the default port).
-        if row[0] != "0.0.0.0":
+        if row[NETWORK_DESTINATION] != "0.0.0.0":
             # 4. Store the network destination and netmask.
             network_dst_string = row[NETWORK_DESTINATION]
             netmask_string = row[NETMASK]
@@ -90,10 +103,10 @@ def generate_forwarding_table_with_range(table):
             # 6. Find the IP range.
             ip_range = find_ip_range(network_dst_bin, netmask_bin)
             # 7. Build the new row.
-            # TODO: what should be included in the row?
-            ## new_row = ...
+            # network destination, netmask, ip range low, ip range high, port
+            new_row = [network_dst_string, netmask_string, ip_range[0], ip_range[1], row[INTERFACE]]
             # 8. Append the new row to new_table.
-            ## new_table.append(new_row)
+            new_table.append(new_row)
     # 9. Return new_table.
     return new_table
 
@@ -158,8 +171,9 @@ def write_to_file(path, packet_to_write, send_to_router=None):
     # 4. Close the output file.
     out_file.close()
 
-
+# ---
 # Main Program
+# ---
 
 # 0. Remove any output files in the output directory
 # (this just prevents you from having to manually delete the output files before each run).
@@ -167,11 +181,12 @@ files = glob.glob('./output/*')
 for f in files:
     os.remove(f)
 
-# TODO: do we just fill this is manually based on the topology that we are provided? 
-# TODO: how are we supposed to complete and test the program? 
 # 1. Connect to the appropriate sending ports (based on the network topology diagram).
-## ...
-## ...
+# create connection to router 2
+soc_two = create_socket('127.0.0.1', 8002)
+
+# create connection to router 4
+soc_four = create_socket('127.0.0.1', 8004)
 
 # 2. Read in and store the forwarding table.
 forwarding_table = read_csv("router_1_table.csv")
@@ -193,37 +208,51 @@ for row in packets_table:
 
     # 8. Decrement the TTL by 1 and construct a new packet with the new TTL.
     new_ttl = ttl - 1
-    # TODO: what should the format of the new packet be, a list? 
     new_packet = [sourceIP, destinationIP, payload, new_ttl]
 
     # 9. Convert the destination IP into an integer for comparison purposes.
     destinationIP_bin = ip_to_bin(destinationIP)
     destinationIP_int = int(destinationIP_bin)
 
-    # TODO: I am not sure what this means
-    # 9. Find the appropriate sending port to forward this new packet to.
-    ## ...
-
-    # TODO: I am also not sure what this means ... am I using the functions defined above?
     # 10. If no port is found, then set the sending port to the default port.
-    ## ...
+    sending_port = default_gateway_port
+
+    # 11. Find the appropriate sending port to forward this new packet to.
+    for row in forwarding_table_with_range: 
+        if destinationIP_int >= row[2] and destinationIP_int <= row[3]:
+            sending_port = row[4]
+
+    # if port is 127.0.0.1, then this is the last router .. (just write the payload the file)
+    # discard if TTL is 0 AND this is not that last hop
+
+    # make sure to send packet
 
     # 11. Either
     # (a) send the new packet to the appropriate port (and append it to sent_by_router_1.txt),
+        # if new_TTL > 0 and port = port_two OR
+        # if new_TTL > 0 and port = port_four
     # (b) append the payload to out_router_1.txt without forwarding because this router is the last hop, or
+        # if sending_port = default?
     # (c) append the new packet to discarded_by_router_1.txt and do not forward the new packet
-    ## if ...:
+        # don't send anything .. ?
+    # TODO: should we be checking TTL or new_ttl?
+
+    if new_ttl > 0 and sending_port == PORT_TWO:
         print("sending packet", new_packet, "to Router 2")
-        ## ...
-    ## elif ...
+        # TODO: actually send the stuff using the socket .. 
+        # TODO: append to sent_by_router_1.txt
+    elif new_ttl > 0 and sending_port == PORT_FOUR:
         print("sending packet", new_packet, "to Router 4")
-        ## ...
-    ## elif ...:
+        # TODO: actually send the stuff
+        # TODO: append to sent_by_router_1.txt
+    elif new_ttl >= 0 and sending_port == "127.0.0.1":
         print("OUT:", payload)
-        ## ...
+    elif new_ttl >= 0 and sending_port not in [PORT_TWO, PORT_FOUR, "127.0.0.1"]:
+        print("sending packet", new_packet, "to Default router")
+        # actually send to the default
+        # do I append anything here? 
     else:
         print("DISCARD:", new_packet)
-        ## ...
 
     # Sleep for some time before sending the next packet (for debugging purposes)
     time.sleep(1)
