@@ -222,19 +222,21 @@ def start_server():
         print("Connected with " + ip + ":" + str(port))
         # 9. Start a new thread for receiving and processing the incoming packets.
         try:
-            # TODO: create a thread with the Thread class ...
-            processing_thread(connection, ip, port, forwarding_table_with_range, default_gateway_port)
+            my_thread = Thread(
+                target = processing_thread,
+                args = (connection, ip, port, forwarding_table_with_range, default_gateway_port)
+            ).start()
         except:
             print("Thread did not start.")
             traceback.print_exc()
 
-
+# TODO: I am confused on the threading ... do I create a new one for each socket? 
+# or should I just leave it as it is ..
 # The purpose of this function is to receive and process incoming packets.
+# TODO: should I use ip and port to just make one socket here, or should there be different ones for servers three and four?
 def processing_thread(connection, ip, port, forwarding_table_with_range, default_gateway_port, max_buffer_size=5120):
     # 1. Connect to the appropriate sending ports (based on the network topology diagram).
-    # TODO: this will change!
-    soc_three = create_socket('127.0.0.1', PORT_THREE)
-    soc_four = create_socket('127.0.0.1', PORT_FOUR)
+    soc = create_socket(ip, port)
 
     # 2. Continuously process incoming packets
     while True:
@@ -276,11 +278,11 @@ def processing_thread(connection, ip, port, forwarding_table_with_range, default
         if new_ttl > 0 and sending_port == "8003":
             print("sending packet", new_packet, "to Router 3")
             write_to_file("sent_by_router_2.txt", payload, "3")
-            soc_three.send(new_packet.encode("utf-8"))
+            soc.send(new_packet.encode("utf-8"))
         elif new_ttl > 0 and sending_port == "8004":
             print("sending packet", new_packet, "to Router 4")
             write_to_file("sent_by_router_2.txt", payload, "4")
-            soc_four.send(new_packet.encode("utf-8"))
+            soc.send(new_packet.encode("utf-8"))
         elif new_ttl >= 0 and sending_port == "127.0.0.1":
             write_to_file("out_router_2.txt", payload, None)
             print("OUT:", payload)
