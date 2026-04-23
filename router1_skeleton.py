@@ -208,7 +208,7 @@ for row in packets_table:
 
     # 8. Decrement the TTL by 1 and construct a new packet with the new TTL.
     new_ttl = ttl - 1
-    new_packet = [sourceIP, destinationIP, payload, new_ttl]
+    new_packet = f"{sourceIP}, {destinationIP}, {payload}, {new_ttl}"
 
     # 9. Convert the destination IP into an integer for comparison purposes.
     destinationIP_bin = ip_to_bin(destinationIP)
@@ -227,6 +227,12 @@ for row in packets_table:
 
     # make sure to send packet
 
+    # TODO: should this kind of check exist as well?
+    '''
+    elif new_ttl >= 0 and sending_port not in [PORT_TWO, PORT_FOUR, "127.0.0.1"]:
+            print("sending packet", new_packet, "to Default router")
+    '''
+
     # 11. Either
     # (a) send the new packet to the appropriate port (and append it to sent_by_router_1.txt),
         # if new_TTL > 0 and port = port_two OR
@@ -235,24 +241,21 @@ for row in packets_table:
         # if sending_port = default?
     # (c) append the new packet to discarded_by_router_1.txt and do not forward the new packet
         # don't send anything .. ?
-    # TODO: should we be checking TTL or new_ttl?
 
     if new_ttl > 0 and sending_port == PORT_TWO:
         print("sending packet", new_packet, "to Router 2")
-        # TODO: actually send the stuff using the socket .. 
-        # TODO: append to sent_by_router_1.txt
+        write_to_file("sent_by_router_1.txt", payload, "Router 2")
+        soc_two.send(new_packet)
     elif new_ttl > 0 and sending_port == PORT_FOUR:
         print("sending packet", new_packet, "to Router 4")
-        # TODO: actually send the stuff
-        # TODO: append to sent_by_router_1.txt
+        write_to_file("sent_by_router_1.txt", payload, "Router 4")
+        soc_four.send(new_packet)
     elif new_ttl >= 0 and sending_port == "127.0.0.1":
+        write_to_file("out_router_1.txt", payload, None)
         print("OUT:", payload)
-    elif new_ttl >= 0 and sending_port not in [PORT_TWO, PORT_FOUR, "127.0.0.1"]:
-        print("sending packet", new_packet, "to Default router")
-        # actually send to the default
-        # do I append anything here? 
     else:
         print("DISCARD:", new_packet)
+        write_to_file("discarded_by_router_1.txt", payload, None)
 
     # Sleep for some time before sending the next packet (for debugging purposes)
     time.sleep(1)
