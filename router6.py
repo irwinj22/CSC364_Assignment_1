@@ -128,7 +128,7 @@ def ip_to_bin(ip):
     # 9. Once the entire string version of the binary IP is created, convert it into an actual binary int.
     ip_int = int(ip_bin_string, 2)
     # 10. Return the binary representation of this int.
-    return bin(ip_int)
+    return ip_int
 
 
 # The purpose of this function is to find the range of IPs inside a given a destination IP address/subnet mask pair.
@@ -164,7 +164,7 @@ def receive_packet(connection, max_buffer_size):
     decoded_packet = received_packet.decode("utf-8").strip()
     # 4. Append the packet to received_by_router_2.txt.
     print("received packet", decoded_packet)
-    write_to_file("received_by_router_2.txt", decoded_packet)
+    write_to_file("received_by_router_6.txt", decoded_packet)
     # 5. Split the packet by the delimiter.
     packet = decoded_packet.split(",")
     # 6. Return the list representation of the packet.
@@ -192,7 +192,7 @@ def start_server():
     # 1. Create a socket.
     host = "127.0.0.1"
     # TODO: change between scripts
-    port = PORT_TWO
+    port = PORT_SIX
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     print("Socket created")
@@ -208,7 +208,7 @@ def start_server():
 
     # 4. Read in and store the forwarding table.
     # TODO: this will change!
-    forwarding_table = read_csv("router_2_table.csv")
+    forwarding_table = read_csv("input/router_6_table.csv")
     # 5. Store the default gateway port.
     default_gateway_port = find_default_gateway(forwarding_table)
     # 6. Generate a new forwarding table that includes the IP ranges for matching against destination IPS.
@@ -230,14 +230,9 @@ def start_server():
             print("Thread did not start.")
             traceback.print_exc()
 
-# TODO: I am confused on the threading ... do I create a new one for each socket? 
 # or should I just leave it as it is ..
 # The purpose of this function is to receive and process incoming packets.
-# TODO: should I use ip and port to just make one socket here, or should there be different ones for servers three and four?
 def processing_thread(connection, ip, port, forwarding_table_with_range, default_gateway_port, max_buffer_size=5120):
-    # 1. Connect to the appropriate sending ports (based on the network topology diagram).
-    soc = create_socket(ip, port)
-
     # 2. Continuously process incoming packets
     while True:
         # 3. Receive the incoming packet, process it, and store its list representation
@@ -257,8 +252,8 @@ def processing_thread(connection, ip, port, forwarding_table_with_range, default
         new_packet = f"{sourceIP},{destinationIP},{payload},{new_ttl}"
 
         # 7. Convert the destination IP into an integer for comparison purposes.
-        destinationIP_bin = ip_to_bin(destinationIP)
-        destinationIP_int = int(destinationIP_bin, 2)
+        # destinationIP_bin = ip_to_bin(destinationIP)
+        destinationIP_int = ip_to_bin(destinationIP)
 
         # 9. If no port is found, then set the sending port to the default port.
         sending_port = default_gateway_port
@@ -275,20 +270,12 @@ def processing_thread(connection, ip, port, forwarding_table_with_range, default
         # (c) append the new packet to discarded_by_router_2.txt and do not forward the new packet
         # TODO: this could be wrong, might have to change ...
         # TODO: this will change!
-        if new_ttl > 0 and sending_port == "8003":
-            print("sending packet", new_packet, "to Router 3")
-            write_to_file("sent_by_router_2.txt", payload, "3")
-            soc.send(new_packet.encode("utf-8"))
-        elif new_ttl > 0 and sending_port == "8004":
-            print("sending packet", new_packet, "to Router 4")
-            write_to_file("sent_by_router_2.txt", payload, "4")
-            soc.send(new_packet.encode("utf-8"))
-        elif new_ttl >= 0 and sending_port == "127.0.0.1":
-            write_to_file("out_router_2.txt", payload, None)
-            print("OUT:", payload)
+        if sending_port == "127.0.0.1":
+            write_to_file("out_router_6.txt", payload, None)
+            print("OUT:", payload) 
         else:
             print("DISCARD:", new_packet)
-            write_to_file("discarded_by_router_2.txt", payload, None)
+            write_to_file("discarded_by_router_6.txt", payload, None)
 
 # Main Program
 

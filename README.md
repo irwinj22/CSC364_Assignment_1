@@ -11,3 +11,12 @@ Programming Assignment 1: Routing Simulation
 ## Some Other Thoughts
 - Should figure out how to test on small scale and make sure that code I have written works before copying over
 to a bunch of different files
+
+Router 1 is just client
+Routers 2 and 4 are client and server
+Routers 3, 5, and 6 are just server
+
+so we are going to come up with the server code ourselves, I guess ...
+figure out what to change, then come up with something simple to test
+then can copy, run, and start to debug (I guess)
+WOULD BE COOL IF I COULD GET TO THAT POINT TODAY :D
