@@ -277,19 +277,19 @@ def processing_thread(connection, ip, port, forwarding_table_with_range, default
             write_to_file("out_router_4.txt", payload, None)
             print("OUT:", payload)
         elif new_ttl <= 0:
-            print("DISCARD:", new_packet)
-            write_to_file("discarded_by_router_4.txt", payload, None)
+            print("DISCARD:", payload)
+            write_to_file("discarded_by_router_4.txt", new_packet, None)
         elif sending_port == "8005":
             print("sending packet", new_packet, "to Router 5")
-            write_to_file("sent_by_router_4.txt", payload, "5")
+            write_to_file("sent_by_router_4.txt", new_packet, "5")
             soc_five.send(new_packet.encode("utf-8"))
         elif sending_port == "8006":
             print("sending packet", new_packet, "to Router 6")
-            write_to_file("sent_by_router_4.txt", payload, "6")
+            write_to_file("sent_by_router_4.txt", new_packet, "6")
             soc_six.send(new_packet.encode("utf-8"))
         else:
-            print("DISCARD:", new_packet)
-            write_to_file("discarded_by_router_4.txt", payload, None)
+            print("DISCARD:", payload)
+            write_to_file("discarded_by_router_4.txt", new_packet, None)
 
 # Main Program
 

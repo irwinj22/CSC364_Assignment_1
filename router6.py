@@ -275,7 +275,7 @@ def processing_thread(connection, ip, port, forwarding_table_with_range, default
             print("OUT:", payload) 
         else:
             print("DISCARD:", new_packet)
-            write_to_file("discarded_by_router_6.txt", payload, None)
+            write_to_file("discarded_by_router_6.txt", new_packet, None)
 
 # Main Program
 

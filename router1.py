@@ -243,18 +243,18 @@ for row in packets_table:
             print("OUT:", payload)
     elif new_ttl <= 0: 
         print("DISCARD:", new_packet)
-        write_to_file("discarded_by_router_1.txt", payload, None)
+        write_to_file("discarded_by_router_1.txt", new_packet, None)
     elif sending_port == "8002":
         print("sending packet", new_packet, "to Router 2")
-        write_to_file("sent_by_router_1.txt", payload, "2")
+        write_to_file("sent_by_router_1.txt", new_packet, "2")
         soc_two.send(new_packet.encode("utf-8"))
     elif sending_port == "8004":
         print("sending packet", new_packet, "to Router 4")
-        write_to_file("sent_by_router_1.txt", payload, "4")
+        write_to_file("sent_by_router_1.txt", new_packet, "4")
         soc_four.send(new_packet.encode("utf-8"))
     else:
         print("DISCARD:", new_packet)
-        write_to_file("discarded_by_router_1.txt", payload, None)
+        write_to_file("discarded_by_router_1.txt", new_packet, None)
 
     # Sleep for some time before sending the next packet (for debugging purposes)
     time.sleep(1)
