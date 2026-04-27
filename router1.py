@@ -218,17 +218,6 @@ for row in packets_table:
             sending_port = entry[4]
             break
 
-    # if port is 127.0.0.1, then this is the last router .. (just write the payload the file)
-    # discard if TTL is 0 AND this is not that last hop
-
-    # make sure to send packet
-
-    # TODO: should this kind of check exist as well?
-    '''
-    elif new_ttl >= 0 and sending_port not in [PORT_TWO, PORT_FOUR, "127.0.0.1"]:
-            print("sending packet", new_packet, "to Default router")
-    '''
-
     # 11. Either
     # (a) send the new packet to the appropriate port (and append it to sent_by_router_1.txt),
         # if new_TTL > 0 and port = port_two OR

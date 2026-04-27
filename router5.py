@@ -191,7 +191,6 @@ def write_to_file(path, packet_to_write, send_to_router=None):
 def start_server():
     # 1. Create a socket.
     host = "127.0.0.1"
-    # TODO: change between scripts
     port = PORT_FIVE
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -207,7 +206,6 @@ def start_server():
     print("Socket now listening")
 
     # 4. Read in and store the forwarding table.
-    # TODO: this will change!
     forwarding_table = read_csv("input/router_5_table.csv")
     # 5. Store the default gateway port.
     default_gateway_port = find_default_gateway(forwarding_table)
@@ -230,7 +228,6 @@ def start_server():
             print("Thread did not start.")
             traceback.print_exc()
 
-# or should I just leave it as it is ..
 # The purpose of this function is to receive and process incoming packets.
 def processing_thread(connection, ip, port, forwarding_table_with_range, default_gateway_port, max_buffer_size=5120):
     # 2. Continuously process incoming packets
@@ -268,8 +265,6 @@ def processing_thread(connection, ip, port, forwarding_table_with_range, default
         # (a) send the new packet to the appropriate port (and append it to sent_by_router_2.txt),
         # (b) append the payload to out_router_2.txt without forwarding because this router is the last hop, or
         # (c) append the new packet to discarded_by_router_2.txt and do not forward the new packet
-        # TODO: this could be wrong, might have to change ...
-        # TODO: this will change!
         if sending_port == "127.0.0.1":
             write_to_file("out_router_5.txt", payload, None)
             print("OUT:", payload) 
